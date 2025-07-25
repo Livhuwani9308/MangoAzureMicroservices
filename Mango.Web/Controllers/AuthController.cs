@@ -60,7 +60,7 @@ namespace Mango.Web.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegistrationRequestDto obj)
         {
-            ResponseDto result = await _authService.AssignRoleAsync(obj);
+            ResponseDto result = await _authService.RegisterAsync(obj);
             ResponseDto assignRole;
 
             if (result != null && result.IsSuccess)
