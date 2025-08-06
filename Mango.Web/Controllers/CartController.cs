@@ -7,7 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 
 namespace Mango.Web.Controllers
 {
-    public class CartController(ICartService _cartService) : Controller
+    public class CartController(ICartService _cartService, IOrderService _orderService) : Controller
     {
         [Authorize]
         public async Task<IActionResult> CartIndex()
@@ -16,9 +16,34 @@ namespace Mango.Web.Controllers
         }
 
         [Authorize]
+        public async Task<IActionResult> Confirmation(int orderId)
+        {
+            return View(orderId);
+        }
+
         public async Task<IActionResult> Checkout()
         {
             return View(await LoadCartDtoBasedOnLoggedInUser());
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ActionName("Checkout")]
+        public async Task<IActionResult> Checkout(CartDto cartDto)
+        {
+            CartDto cart = await LoadCartDtoBasedOnLoggedInUser();
+            cart.CartHeader.Name = cartDto.CartHeader.Name;
+            cart.CartHeader.Phone = cartDto.CartHeader.Phone;
+            cart.CartHeader.Email = cartDto.CartHeader.Email;
+
+            var response = await _orderService.CreateOrder(cart);
+            OrderHeaderDto orderHeader = JsonConvert.DeserializeObject<OrderHeaderDto>(response.Result.ToString());
+
+            if (response != null && response.IsSuccess)
+            {
+                // GET STRIPE SESSION & REDIRECT TO STRIPE TO PLACE ORDER
+            }
+            return View();
         }
 
         public async Task<IActionResult> Remove(int cartDetailsId)
